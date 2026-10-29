@@ -1,0 +1,64 @@
+services:
+
+  postgres:
+    image: postgres:13
+    container_name: query_postgres
+    environment:
+      POSTGRES_DB: restaurants
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: pass123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - query_network
+    restart: unless-stopped
+
+    
+  postgres_sessions:
+    image: postgres:13
+    container_name: query_sessions_postgres
+    environment:
+      POSTGRES_DB: adk_sessions
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: pass123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_sessions_data:/var/lib/postgresql/data
+    networks:
+      - query_network
+    restart: unless-stopped
+
+  
+  pgadmin:
+    image: dpage/pgadmin4:8.11
+    container_name: query_pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin123
+      - PGADMIN_CONFIG_SERVER_MODE=False
+      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+      - PGADMIN_LISTEN_PORT=80
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - query_network
+    depends_on:
+      - postgres
+      - postgres_sessions
+    restart: unless-stopped
+    user: root  
+
+networks:
+  query_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  postgres_sessions_data:
+  pgadmin_data:
